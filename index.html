@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PassiveZero — Aggregatore & Formulatore di Entrate Passive a Costo Zero</title>
+<meta name="description" content="Piattaforma gratuita che aggrega 24 fonti di reddito passivo a costo zero e formula il tuo piano personalizzato.">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<script>
+tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter','sans-serif'], display: ['Space Grotesk','sans-serif'] }, colors: { ink:'#0B0F0E', panel:'#121816', line:'#1F2A26', mint:'#34D399', lime:'#A3E635', sand:'#E7E5D8' } } } }
+</script>
+<style>
+  *{scroll-behavior:smooth}
+  body{background:#0B0F0E;color:#E7E5D8;font-family:Inter,sans-serif}
+  ::selection{background:#34D399;color:#0B0F0E}
+  .glass{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);backdrop-filter:blur(12px)}
+  .card-hover{transition:all .25s ease}
+  .card-hover:hover{transform:translateY(-4px);border-color:rgba(52,211,153,.5);box-shadow:0 20px 40px rgba(0,0,0,.4)}
+  .grad{background:linear-gradient(135deg,#34D399,#A3E635)}
+  .grad-text{background:linear-gradient(135deg,#34D399,#A3E635);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .chip{border:1px solid rgba(255,255,255,.12)}
+  .chip.active{background:#34D399;color:#0B0F0E;border-color:#34D399;font-weight:700}
+  input[type=range]{-webkit-appearance:none;height:6px;border-radius:99px;background:#1F2A26;outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:#34D399;cursor:pointer;border:3px solid #0B0F0E;box-shadow:0 0 0 2px #34D399}
+  .step-dot{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;border:2px solid #1F2A26}
+  .step-dot.active{background:#34D399;color:#0B0F0E;border-color:#34D399}
+  .step-dot.done{background:#1F2A26;color:#34D399;border-color:#34D399}
+  .opt{border:1.5px solid #1F2A26;cursor:pointer;transition:all .2s}
+  .opt:hover{border-color:#34D399}
+  .opt.selected{border-color:#34D399;background:rgba(52,211,153,.1)}
+  .opt.selected .opt-check{background:#34D399;color:#0B0F0E}
+  .opt-check{width:22px;height:22px;border-radius:50%;border:1.5px solid #2A3A34;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+  .modal-bg{background:rgba(0,0,0,.75);backdrop-filter:blur(6px)}
+  .bar{height:8px;border-radius:99px;background:#1F2A26;overflow:hidden}
+  .bar-fill{height:100%;border-radius:99px}
+  .tab-btn.active{background:#34D399;color:#0B0F0E;font-weight:700}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+  .float{animation:float 5s ease-in-out infinite}
+  @keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.4}}
+  .live-dot{animation:pulse-dot 1.5s infinite}
+  .toast{animation:slideUp .3s ease}
+  @keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+  details summary::-webkit-details-marker{display:none}
+</style>
+</head>
+<body class="antialiased">
+
+<!-- HEADER -->
+<header class="sticky top-0 z-40 border-b border-line bg-[#0B0F0E]/90 backdrop-blur-xl">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+    <a href="#" class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl grad flex items-center justify-center text-[#0B0F0E] font-black text-lg">€</div>
+      <div class="leading-tight">
+        <div class="font-display font-bold text-lg tracking-tight">Passive<span class="text-mint">Zero</span></div>
+        <div class="text-[10px] uppercase tracking-widest text-white/40 -mt-0.5">Aggregatore · Formulatore</div>
+      </div>
+    </a>
+    <nav class="hidden md:flex items-center gap-1 text-sm">
+      <a href="#aggregatore" class="px-3 py-2 rounded-lg hover:bg-white/5">Aggregatore</a>
+      <a href="#formulatore" class="px-3 py-2 rounded-lg hover:bg-white/5">Formulatore</a>
+      <a href="#simulatore" class="px-3 py-2 rounded-lg hover:bg-white/5">Simulatore</a>
+      <a href="#tracker" class="px-3 py-2 rounded-lg hover:bg-white/5">Tracker</a>
+      <a href="#roadmap" class="px-3 py-2 rounded-lg hover:bg-white/5">Roadmap 90 giorni</a>
+    </nav>
+    <div class="flex items-center gap-2">
+      <span class="hidden sm:flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-full border border-mint/30 text-mint"><span class="w-2 h-2 rounded-full bg-mint live-dot"></span> 24 fonti · 0€ costi</span>
+      <a href="#formulatore" class="bg-mint text-[#0B0F0E] font-bold text-sm px-4 py-2.5 rounded-xl hover:bg-lime transition">Crea il mio piano →</a>
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="relative overflow-hidden">
+  <div class="absolute inset-0 pointer-events-none">
+    <div class="absolute -top-40 left-1/2 -translate-x-1/2 w-[900px] h-[500px] rounded-full opacity-20 blur-3xl" style="background:radial-gradient(circle,#34D399,transparent 70%)"></div>
+    <div class="absolute top-40 right-0 w-[400px] h-[400px] rounded-full opacity-10 blur-3xl" style="background:radial-gradient(circle,#A3E635,transparent 70%)"></div>
+  </div>
+  <div class="relative max-w-7xl mx-auto px-4 sm:px-6 pt-14 pb-10 md:pt-20 md:pb-16">
+    <div class="grid lg:grid-cols-2 gap-10 items-center">
+      <div>
+        <div class="inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full border border-mint/30 text-mint mb-5">● PIATTAFORMA GRATUITA · NESSUN COSTO · NESSUNA ISCRIZIONE</div>
+        <h1 class="font-display font-bold text-4xl sm:text-5xl lg:text-6xl leading-[1.05] tracking-tight">Entrate passive.<br><span class="grad-text">Costo zero.</span><br>Piano su misura.</h1>
+        <p class="mt-5 text-white/60 text-lg leading-relaxed max-w-xl">PassiveZero <strong class="text-white">aggrega</strong> 24 fonti di reddito passivo verificate a costo zero e le <strong class="text-white">formula</strong> in un piano personalizzato in base al tuo tempo, alle tue skill e al tuo obiettivo. Nessun capitale richiesto. Nessun corso da comprare.</p>
+        <div class="mt-7 flex flex-wrap gap-3">
+          <a href="#formulatore" class="bg-mint text-[#0B0F0E] font-bold px-6 py-3.5 rounded-xl hover:bg-lime transition">✨ Formula il mio piano (2 min)</a>
+          <a href="#aggregatore" class="glass font-semibold px-6 py-3.5 rounded-xl hover:border-mint/50 transition">Esplora le 24 fonti ↓</a>
+        </div>
+        <div class="mt-8 grid grid-cols-3 gap-3 max-w-md">
+          <div class="glass rounded-2xl p-4"><div class="text-2xl font-black text-mint">24</div><div class="text-xs text-white/50 mt-0.5">Fonti aggregate</div></div>
+          <div class="glass rounded-2xl p-4"><div class="text-2xl font-black text-lime">0€</div><div class="text-xs text-white/50 mt-0.5">Costo di ingresso</div></div>
+          <div class="glass rounded-2xl p-4"><div class="text-2xl font-black">100%</div><div class="text-xs text-white/50 mt-0.5">Legale & gratuito</div></div>
+        </div>
+      </div>
+      <div class="relative">
+        <div class="glass rounded-3xl p-5 sm:p-6 float">
+          <div class="flex items-center justify-between mb-4">
+            <div class="font-semibold text-sm">📊 Anteprima piano formulato</div>
+            <span class="text-xs px-2 py-1 rounded-full bg-mint/15 text-mint border border-mint/30">Esempio live</span>
+          </div>
+          <div class="space-y-3" id="heroPreview"></div>
+          <div class="mt-5 pt-4 border-t border-line flex items-center justify-between">
+            <div><div class="text-xs text-white/50">Stima a 12 mesi</div><div class="text-2xl font-black text-mint">€ 1.240<span class="text-sm text-white/40 font-medium">/mese</span></div></div>
+            <div class="text-right"><div class="text-xs text-white/50">Setup totale</div><div class="font-bold">~18 ore</div></div>
+          </div>
+        </div>
+        <div class="absolute -bottom-4 -left-2 sm:-left-4 glass rounded-2xl px-4 py-3 flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-lime/20 flex items-center justify-center text-lg">💸</div>
+          <div><div class="text-xs text-white/50">Primo euro stimato</div><div class="font-bold text-sm">in 7–21 giorni</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AGGREGATORE -->
+<section id="aggregatore" class="max-w-7xl mx-auto px-4 sm:px-6 py-12">
+  <div class="flex flex-wrap items-end justify-between gap-4 mb-6">
+    <div>
+      <div class="text-xs font-bold tracking-widest text-mint uppercase">01 · Aggregatore</div>
+      <h2 class="font-display font-bold text-3xl sm:text-4xl mt-1">Tutte le fonti, in un unico posto</h2>
+      <p class="text-white/50 mt-1">24 fonti passive verificate. Tutte a costo zero. Clicca una card per la guida completa.</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <input id="searchInput" type="text" placeholder="🔍 Cerca fonte, skill, tool…" class="bg-panel border border-line rounded-xl px-4 py-2.5 text-sm w-64 focus:outline-none focus:border-mint placeholder:text-white/30">
+      <select id="sortSelect" class="bg-panel border border-line rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-mint">
+        <option value="potenziale">Potenziale ↓</option>
+        <option value="facile">Più facili</option>
+        <option value="veloce">Primo euro veloce</option>
+        <option value="passivo">Più passive</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="flex flex-wrap gap-2 mb-3" id="catFilters"></div>
+  <div class="flex flex-wrap gap-2 mb-6" id="diffFilters"></div>
+
+  <div class="text-sm text-white/40 mb-4"><span id="countLabel">24</span> fonti mostrate · <span class="text-mint">tutte a costo zero</span></div>
+  <div id="grid" class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
+  <div id="emptyState" class="hidden text-center py-16 glass rounded-3xl">
+    <div class="text-4xl mb-3">🔍</div>
+    <div class="font-bold text-lg">Nessuna fonte trovata</div>
+    <p class="text-white/50 text-sm mt-1">Prova a cambiare ricerca o filtri.</p>
+    <button onclick="resetFilters()" class="mt-4 bg-mint text-[#0B0F0E] font-bold px-5 py-2.5 rounded-xl text-sm">Azzera filtri</button>
+  </div>
+</section>
+
+<!-- FORMULATORE -->
+<section id="formulatore" class="border-y border-line bg-panel/50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-14">
+    <div class="text-xs font-bold tracking-widest text-mint uppercase">02 · Formulatore</div>
+    <h2 class="font-display font-bold text-3xl sm:text-4xl mt-1">Formula il tuo piano in 2 minuti</h2>
+    <p class="text-white/50 mt-1 max-w-2xl">Rispondi a 5 domande. L'algoritmo incrocia tempo, skill, obiettivo e preferenze con le 24 fonti e ti restituisce un portafoglio personalizzato con stime e roadmap.</p>
+
+    <div class="grid lg:grid-cols-5 gap-6 mt-8">
+      <!-- Wizard -->
+      <div class="lg:col-span-3 glass rounded-3xl p-5 sm:p-7">
+        <div class="flex items-center justify-between mb-6">
+          <div class="flex items-center gap-2" id="stepDots"></div>
+          <div class="text-xs text-white/40" id="stepLabel">Domanda 1 di 5</div>
+        </div>
+        <div id="wizardBody"></div>
+        <div class="flex items-center justify-between mt-7 pt-5 border-t border-line">
+          <button id="btnBack" onclick="wizardBack()" class="px-5 py-2.5 rounded-xl border border-line text-sm font-semibold hover:border-white/30 disabled:opacity-30 disabled:cursor-not-allowed" disabled>← Indietro</button>
+          <button id="btnNext" onclick="wizardNext()" class="bg-mint text-[#0B0F0E] font-bold px-6 py-2.5 rounded-xl text-sm hover:bg-lime disabled:opacity-30 disabled:cursor-not-allowed" disabled>Avanti →</button>
+        </div>
+      </div>
+
+      <!-- Result -->
+      <div class="lg:col-span-2">
+        <div id="formResult" class="glass rounded-3xl p-5 sm:p-6 sticky top-24">
+          <div class="text-center py-10">
+            <div class="text-5xl mb-4">🧮</div>
+            <div class="font-bold text-lg">Il tuo piano apparirà qui</div>
+            <p class="text-white/50 text-sm mt-2 max-w-xs mx-auto">Completa il formulatore per generare il mix ideale di entrate passive per te.</p>
+            <div class="mt-5 flex flex-wrap justify-center gap-2 text-xs text-white/40">
+              <span class="px-2.5 py-1 rounded-full border border-line">Tempo</span>
+              <span class="px-2.5 py-1 rounded-full border border-line">Skill</span>
+              <span class="px-2.5 py-1 rounded-full border border-line">Obiettivo</span>
+              <span class="px-2.5 py-1 rounded-full border border-line">Stile</span>
+              <span class="px-2.5 py-1 rounded-full border border-line">Velocità</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SIMULATORE -->
+<section id="simulatore" class="max-w-7xl mx-auto px-4 sm:px-6 py-14">
+  <div class="text-xs font-bold tracking-widest text-mint uppercase">03 · Simulatore</div>
+  <h2 class="font-display font-bold text-3xl sm:text-4xl mt-1">Simula i guadagni</h2>
+  <p class="text-white/50 mt-1">Muovi i cursori e vedi quanto potresti guadagnare con una fonte. Stime prudenziali, non promesse.</p>
+
+  <div class="grid lg:grid-cols-2 gap-6 mt-8">
+    <div class="glass rounded-3xl p-5 sm:p-7">
+      <label class="text-sm font-semibold">Fonte da simulare</label>
+      <select id="simSource" class="w-full mt-2 bg-panel border border-line rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-mint"></select>
+
+      <div class="mt-6 space-y-6">
+        <div>
+          <div class="flex justify-between text-sm mb-2"><span class="text-white/60">Visite / download / vendite al mese</span><span class="font-bold text-mint" id="simTrafficLabel">1.000</span></div>
+          <input id="simTraffic" type="range" min="100" max="50000" step="100" value="1000" class="w-full">
+        </div>
+        <div>
+          <div class="flex justify-between text-sm mb-2"><span class="text-white/60">Tasso di conversione</span><span class="font-bold text-mint" id="simConvLabel">2,0%</span></div>
+          <input id="simConv" type="range" min="0.1" max="20" step="0.1" value="2" class="w-full">
+        </div>
+        <div>
+          <div class="flex justify-between text-sm mb-2"><span class="text-white/60">Guadagno per vendita / click</span><span class="font-bold text-mint" id="simPriceLabel">€ 5,00</span></div>
+          <input id="simPrice" type="range" min="0.5" max="100" step="0.5" value="5" class="w-full">
+        </div>
+        <div>
+          <div class="flex justify-between text-sm mb-2"><span class="text-white/60">Mesi di crescita</span><span class="font-bold text-mint" id="simMonthsLabel">6 mesi</span></div>
+          <input id="simMonths" type="range" min="1" max="24" step="1" value="6" class="w-full">
+        </div>
+      </div>
+      <p class="text-xs text-white/30 mt-5">⚠️ Le stime sono illustrative. I risultati reali dipendono da nicchia, qualità e costanza.</p>
+    </div>
+
+    <div class="glass rounded-3xl p-5 sm:p-7">
+      <div class="grid grid-cols-2 gap-3 mb-5">
+        <div class="bg-panel rounded-2xl p-4 border border-line"><div class="text-xs text-white/50">Entrata / mese</div><div class="text-2xl font-black text-mint mt-1" id="simMonthly">€ 100</div></div>
+        <div class="bg-panel rounded-2xl p-4 border border-line"><div class="text-xs text-white/50">Entrata totale</div><div class="text-2xl font-black text-lime mt-1" id="simTotal">€ 600</div></div>
+        <div class="bg-panel rounded-2xl p-4 border border-line"><div class="text-xs text-white/50">Vendite / mese</div><div class="text-xl font-bold mt-1" id="simSales">20</div></div>
+        <div class="bg-panel rounded-2xl p-4 border border-line"><div class="text-xs text-white/50">Ore setup stimate</div><div class="text-xl font-bold mt-1" id="simHours">—</div></div>
+      </div>
+      <div class="h-56"><canvas id="simChart"></canvas></div>
+    </div>
+  </div>
+</section>
+
+<!-- TRACKER -->
+<section id="tracker" class="border-y border-line bg-panel/50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-14">
+    <div class="flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <div class="text-xs font-bold tracking-widest text-mint uppercase">04 · Tracker</div>
+        <h2 class="font-display font-bold text-3xl sm:text-4xl mt-1">Traccia le tue entrate reali</h2>
+        <p class="text-white/50 mt-1">Registra ogni euro guadagnato. I dati restano sul tuo dispositivo (localStorage).</p>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="exportCSV()" class="glass px-4 py-2.5 rounded-xl text-sm font-semibold hover:border-mint/50">⬇ Esporta CSV</button>
+        <button onclick="clearTracker()" class="glass px-4 py-2.5 rounded-xl text-sm font-semibold hover:border-red-400/50 hover:text-red-300">🗑 Azzera</button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-7">
+      <div class="glass rounded-2xl p-4"><div class="text-xs text-white/50">Totale guadagnato</div><div class="text-2xl font-black text-mint mt-1" id="tTotal">€ 0</div></div>
+      <div class="glass rounded-2xl p-4"><div class="text-xs text-white/50">Questo mese</div><div class="text-2xl font-black mt-1" id="tMonth">€ 0</div></div>
+      <div class="glass rounded-2xl p-4"><div class="text-xs text-white/50">Fonti attive</div><div class="text-2xl font-black mt-1" id="tSources">0</div></div>
+      <div class="glass rounded-2xl p-4"><div class="text-xs text-white/50">Media / mese</div><div class="text-2xl font-black text-lime mt-1" id="tAvg">€ 0</div></div>
+    </div>
+
+    <div class="grid lg:grid-cols-5 gap-6 mt-6">
+      <form id="trackerForm" class="lg:col-span-2 glass rounded-3xl p-5 sm:p-6 space-y-4">
+        <div class="font-bold">➕ Aggiungi entrata</div>
+        <div>
+          <label class="text-xs text-white/50">Fonte</label>
+          <select id="tSource" class="w-full mt-1 bg-panel border border-line rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-mint"></select>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="text-xs text-white/50">Importo (€)</label><input id="tAmount" type="number" min="0" step="0.01" required placeholder="50" class="w-full mt-1 bg-panel border border-line rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-mint"></div>
+          <div><label class="text-xs text-white/50">Data</label><input id="tDate" type="date" required class="w-full mt-1 bg-panel border border-line rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-mint [color-scheme:dark]"></div>
+        </div>
+        <div><label class="text-xs text-white/50">Nota (opzionale)</label><input id="tNote" type="text" placeholder="es. prima vendita Etsy" class="w-full mt-1 bg-panel border border-line rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-mint"></div>
+        <button type="submit" class="w-full bg-mint text-[#0B0F0E] font-bold py-3 rounded-xl hover:bg-lime">Salva entrata</button>
+      </form>
+      <div class="lg:col-span-3 glass rounded-3xl p-5 sm:p-6">
+        <div class="flex items-center justify-between mb-4"><div class="font-bold">📈 Andamento</div><div class="text-xs text-white/40">Ultimi 12 mesi</div></div>
+        <div class="h-52 mb-5"><canvas id="trackerChart"></canvas></div>
+        <div id="trackerList" class="space-y-2 max-h-64 overflow-y-auto pr-1"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ROADMAP -->
+<section id="roadmap" class="max-w-7xl mx-auto px-4 sm:px-6 py-14">
+  <div class="text-xs font-bold tracking-widest text-mint uppercase">05 · Roadmap</div>
+  <h2 class="font-display font-bold text-3xl sm:text-4xl mt-1">Piano 90 giorni</h2>
+  <p class="text-white/50 mt-1">Se hai già formulato un piano, la roadmap si adatta alle tue fonti. Altrimenti vedi il piano universale.</p>
+  <div id="roadmapBody" class="mt-8"></div>
+</section>
+
+<!-- FOOTER -->
+<footer class="border-t border-line">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+    <div class="grid md:grid-cols-3 gap-8">
+      <div>
+        <div class="flex items-center gap-2 mb-3"><div class="w-8 h-8 rounded-lg grad flex items-center justify-center text-[#0B0F0E] font-black">€</div><span class="font-display font-bold">PassiveZero</span></div>
+        <p class="text-sm text-white/50 leading-relaxed">Aggregatore e formulatore di entrate passive a costo zero. Nessun capitale, nessuna iscrizione, nessun corso da comprare.</p>
+      </div>
+      <div>
+        <div class="font-bold text-sm mb-3">Come funziona</div>
+        <ul class="text-sm text-white/50 space-y-2">
+          <li>1. Esplora le 24 fonti nell'aggregatore</li>
+          <li>2. Formula il tuo piano in 2 minuti</li>
+          <li>3. Segui la roadmap di 90 giorni</li>
+          <li>4. Traccia le entrate reali</li>
+        </ul>
+      </div>
+      <div>
+        <div class="font-bold text-sm mb-3">Avvertenze</div>
+        <p class="text-sm text-white/50 leading-relaxed">Le stime sono indicative e non garantiscono guadagni. "Passivo" significa che dopo il setup iniziale serve poco tempo di manutenzione, non zero impegno. Tutte le fonti elencate sono legali e gratuite da avviare.</p>
+      </div>
+    </div>
+    <div class="mt-8 pt-6 border-t border-line text-xs text-white/30 flex flex-wrap justify-between gap-2">
+      <span>© 2026 PassiveZero — Costo zero, sempre.</span>
+      <span>Fatto con ♥ in Italia · Dati salvati solo sul tuo dispositivo</span>
+    </div>
+  </div>
+</footer>
+
+<!-- MODAL DETTAGLIO -->
+<div id="modal" class="hidden fixed inset-0 z-50 modal-bg flex items-end sm:items-center justify-center p-0 sm:p-6" onclick="if(event.target===this)closeModal()">
+  <div class="bg-[#121816] border border-line w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl">
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<div id="toast" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-50 bg-mint text-[#0B0F0E] font-bold px-5 py-3 rounded-xl shadow-2xl toast text-sm"></div>
+
+<script src="assets/data.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
